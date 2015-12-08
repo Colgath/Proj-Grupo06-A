@@ -12,8 +12,14 @@ OBJECTS=$(SOURCES:.cu=.o)
 TARGET_DIR=./
 TARGET=$(TARGET_DIR)main
 #Main
-all: $(TARGET)
+all: main.o
 #	
+main.o:
+	nvcc `pkg-config --cflags opencv ` main.cu `pkg-config --libs opencv` -o main
+	
+run:
+	./main
+
 $(TARGET): $(OBJECTS)
 	$(CUDA_CC) -o $@ $^ $(FLAGS) $(NVIDIA_FLAGS)
 
