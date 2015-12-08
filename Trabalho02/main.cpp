@@ -7,14 +7,13 @@ int main(int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		cerr << "Numero invalido de parametros. Por favor, entre com o tipo de execucao" << endl << "0 - Sequencial\n1 - Paralelo" << endl;
+		std::cerr << "Numero invalido de parametros. Por favor, entre com o tipo de execucao" << std::endl << "0 - Sequencial\n1 - Paralelo" << std::endl;
 	}
     int opcao= atoi(argv[1]);
 	int opcao_cor=0;
 	
 	char nome_imagem[100];
 	char nome_saida[100];
-    std::string nome_saida;
     std::cout << "V2.0-----Concorrentes-----\n" ;
     std::cout << "Eduardo Brunaldi dos Santos & Igor de Souza Baliza\n";
     std::cout << "\n\n\n";
@@ -26,7 +25,7 @@ int main(int argc, char **argv)
 		std::cout << "Digite uma das opcoes: ";
 		std::cin >> opcao_cor;
 		
-		if(opção_cor != 0)
+		if(opcao_cor != 0)
 		{
 			std::cout << "Digite o nome do arquivo de entrada: ";
 			std::cin >> nome_imagem;

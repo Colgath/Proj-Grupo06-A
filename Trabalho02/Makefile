@@ -13,7 +13,7 @@ SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 HEADERS=$(wildcard *.h)
 TARGET_DIR=./
-TARGET=$(TARGET_DIR)main_mt
+TARGET=$(TARGET_DIR)main
 
 #Main
 all: $(TARGET)
