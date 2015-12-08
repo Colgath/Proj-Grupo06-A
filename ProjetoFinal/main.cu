@@ -1,5 +1,12 @@
+#include <iostream>
+#include <string>
 #include <stdio.h>
-#include "smooth.h"
+#include <opencv/cv.h>
+#include <opencv/ml.h>
+#include <opencv/cxcore.h>
+#include <opencv/highgui.h>
+#include <sys/time.h>
+#include <cuda.h>
 
 __global__ void smoothGray (unsigned char *imagem, unsigned char *saida, unsigned int cols, unsigned int linhas)
 {
