@@ -46,18 +46,20 @@ int main(int argc, char **argv)
 			
 			switch (opcao){
 			case 0:
+				std::cout << "Executando em sequencial a imagem "<<nome_imagem <<std::endl;
 				sprintf (nome_saida, "saida/sequencial/%s", nome_saida);
 			   if(opcao_cor == 1){
 					sequencialColorido(nome_imagem, nome_saida);
-				}else{
+				}else if(opcao_cor ==2){
 					sequencialCinza(nome_imagem, nome_saida);
 				}
+				std::cout << "Execução sequencial concluida. Criado o arquivo " << nome_saida <<std::endl;
 				break;
 			case 1:
 				sprintf (nome_saida, "saida/concorrente/%s", nome_saida);
 				if(opcao_cor == 1){
 					concorrenteColorido(nome_imagem, nome_saida);
-				}else{
+				}else if(opcao_cor ==2){
 					concorrenteCinza(nome_imagem, nome_saida);
 				}
 				break;

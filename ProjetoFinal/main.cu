@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/cuda.hpp>
+//#include <opencv2/core/cuda.hpp>
 
 
 // #include <opencv/cv.h> //Minha versão é outra.
@@ -12,14 +12,14 @@
 // #include <opencv/highgui.h>
 
 
-//#include <sys/time.h> //Não existe no Windows.
+#include <sys/time.h> //Não existe no Windows.
 
 
 #include <cuda.h> //Original
 
 //#include <CUDA/cuda.h>
-#include <CUDA/cuda_runtime.h>
-#include <CUDA/device_launch_parameters.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 __global__ void smoothGray (unsigned char *imagem, unsigned char *saida, unsigned int cols, unsigned int linhas)
 {
@@ -53,7 +53,6 @@ void cudaCinza(char *nome_imagem, char *nome_saida)
 	cv::Mat imagem = cv::imread(nome_imagem, CV_LOAD_IMAGE_GRAYSCALE); //abre a imagem de origem
 	cv::Mat saida(imagem.rows, imagem.cols, imagem.type()); //cria a imagem de destino
 
-	
 	struct timeval start,end;
     double tempo=0.0;
     gettimeofday(&start,NULL);
@@ -61,11 +60,10 @@ void cudaCinza(char *nome_imagem, char *nome_saida)
 	unsigned char * imagem_entrada;
 	unsigned char * imagem_saida;
 	cudaMalloc((void **)&(imagem_entrada), sizeof(unsigned char) * imagem.rows*imagem.cols);//aloca a imagem de origem na GPU
-	cudaMemcpy((void *)(imagem_entrada), (void *)(imagem.data), sizeof(unsigned char) * imagem.rows * imagem.cols, cudaMemcpyKind::cudaMemcpyHostToDevice); //manda a imagem de origem pra GPU
+	cudaMemcpy((void *)(imagem_entrada), (void *)(imagem.data), sizeof(unsigned char) * imagem.rows * imagem.cols, cudaMemcpyHostToDevice); //manda a imagem de origem pra GPU
 	
 	cudaMalloc((void **)&(imagem_saida), sizeof(unsigned char) * imagem.rows*imagem.cols);//aloca a imagem de destino na GPU
-	
-	
+		
 	/* Inicio do processo paralelo */
 	
 //	cuInit(0); 
@@ -73,26 +71,23 @@ void cudaCinza(char *nome_imagem, char *nome_saida)
 	unsigned int num_Blocos = (unsigned int)ceil(((double)(imagem.rows*imagem.cols))/1024); //verifica quantos blocos serão necessário para a imagem
 	smoothGray <<< num_Blocos, Bloco_dim >>> (imagem_entrada, imagem_saida, imagem.cols, imagem.rows);
 	cudaDeviceSynchronize(); 
-	
 	/* Fim do processo paralelo */
 	
-	
-	cudaMemcpy((void *)(saida.data), imagem_saida,(size_t)(sizeof(unsigned char) * imagem.rows * imagem.cols), cudaMemcpyKind::cudaMemcpyDeviceToHost); //copia a imagem resultante para o Host
+	cudaMemcpy((void *)(saida.data), imagem_saida,(size_t)(sizeof(unsigned char) * imagem.rows * imagem.cols), cudaMemcpyDeviceToHost); //copia a imagem resultante para o Host
 	
 	gettimeofday(&end,NULL);
     tempo =( ((double) ( ((end.tv_sec * 1000000 + end.tv_usec)
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
+    char arquivo[100];
 
-    char nome[100];
-    sprintf(nome, "%s.out", imagem_saida);
+    sprintf(arquivo, "%s.out", nome_saida);
     FILE *fp = NULL;
-    if((fp = fopen(nome, "a")) == NULL)
-		fp = fopen(nome,"w");
+    if((fp = fopen(arquivo, "a")) == NULL)
+		fp = fopen(arquivo,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
-	
 	
 	cv::imwrite(nome_saida, saida); //Escreve imagem no arquivo
 	
@@ -144,7 +139,7 @@ void cudaColorido(char *nome_imagem, char *nome_saida)
 	unsigned char * imagem_entrada;
 	unsigned char * imagem_saida;
 	cudaMalloc((void **)&(imagem_entrada), sizeof(unsigned char) * imagem.rows*imagem.cols * 3);//aloca a imagem de origem na GPU
-	cudaMemcpy((void *)(imagem_entrada), (void *)(imagem.data), sizeof(unsigned char) * imagem.rows * imagem.cols * 3, cudaMemcpyKind::cudaMemcpyHostToDevice); //manda a imagem de origem pra GPU
+	cudaMemcpy((void *)(imagem_entrada), (void *)(imagem.data), sizeof(unsigned char) * imagem.rows * imagem.cols * 3, cudaMemcpyHostToDevice); //manda a imagem de origem pra GPU
 
 	cudaMalloc((void **)&(imagem_saida), sizeof(unsigned char) * imagem.rows*imagem.cols * 3);//aloca a imagem de destino na GPU
 	
@@ -161,20 +156,20 @@ void cudaColorido(char *nome_imagem, char *nome_saida)
 	/* Fim do processo paralelo */
 	
 
-	cudaMemcpy((void *)(saida.data), (void *)imagem_saida, (size_t)(sizeof(unsigned char) * imagem.rows * imagem.cols * 3), cudaMemcpyKind::cudaMemcpyDeviceToHost); //copia a imagem resultante para o Host
-	
+	cudaMemcpy((void *)(saida.data), (void *)imagem_saida, (size_t)(sizeof(unsigned char) * imagem.rows * imagem.cols * 3), cudaMemcpyDeviceToHost); //copia a imagem resultante para o Host
 	
 	gettimeofday(&end,NULL);
     tempo =( ((double) ( ((end.tv_sec * 1000000 + end.tv_usec)
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
-
-    char nome[100];
-    sprintf(nome, "%s.out", imagem_saida);
+	
+	char arquivo[100];
+   //char *nome = strcat (nome_saida, ".out");
+    sprintf(arquivo, "%s.out", nome_saida);
     FILE *fp = NULL;
-    if((fp = fopen(nome, "a")) == NULL)
-		fp = fopen(nome,"w");
+    if((fp = fopen(arquivo, "a")) == NULL)
+		fp = fopen(arquivo,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
 	
@@ -205,23 +200,23 @@ int main()
 		
 		if(opcao_cor != 0)
 		{
+			int indice=0, i;
+			char buffer_saida[100];
 			std::cout << "Digite o nome do arquivo de entrada: ";
 			std::cin >> nome_imagem;
 			
-			int indice;
-			int i = 0;
-			for(; nome_imagem[i] != '\0'; ++i)
+			for(i=0; i < strlen(nome_imagem); ++i)
 			{
-				if(nome_imagem[i] == '/' ) indice = i;
+				if(nome_imagem[i] == '/' ) indice = i+1;
 			}
-			indice++;
-			int j = 0;
-			for(; j < i; ++j)
-			{
-				nome_saida[j] = nome_imagem[indice+j];//NICE
-			}
-
-			sprintf (nome_saida, "saida/%s", nome_imagem);
+			
+				int j = 0;
+				for(; j <= i-indice; ++j)
+				{
+					buffer_saida[j] = nome_imagem[indice+j];
+				}
+			
+			sprintf (nome_saida, "saida/%s", buffer_saida);
 			if(opcao_cor == 1){
 				cudaColorido(nome_imagem, nome_saida);
 			}else{
