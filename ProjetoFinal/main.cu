@@ -132,8 +132,8 @@ __global__ void smoothColor (unsigned char *imagem, unsigned char *saida, unsign
 
 void cudaColorido(char *nome_imagem, char *nome_saida)
 {
-	cv::Mat imagem = cv::imread(nome_imagem, CV_LOAD_IMAGE_COLOR); //abre a imagem de origem
-	cv::Mat saida(imagem.rows, imagem.cols, imagem.type()); //cria a imagem de destino
+	cv::Mat imagem = cv::imread(nome_imagem); //abre a imagem de origem
+	cv::Mat saida(imagem.rows, imagem.cols, CV_8UC3); //cria a imagem de destino
 	
 	struct timeval start,end;
     double tempo=0.0;
@@ -151,11 +151,9 @@ void cudaColorido(char *nome_imagem, char *nome_saida)
 	cuInit(0); 
 	dim3 Bloco_dim(1024); //define bloco de 1 linha tamanho 1024
 
-
-
 	unsigned int num_Blocos = (unsigned int)ceil(((double)(imagem.rows*imagem.cols)) / 1024); //verifica quantos blocos serão necessário para a imagem
 
-	smoothGray << < (num_Blocos * 3), Bloco_dim >> > (imagem_entrada, imagem_saida, imagem.cols, imagem.rows); 
+	smoothColor << < num_Blocos, Bloco_dim >> > (imagem_entrada, imagem_saida, imagem.cols, imagem.rows); 
 	cudaDeviceSynchronize(); 
 
 	/* Fim do processo paralelo */
