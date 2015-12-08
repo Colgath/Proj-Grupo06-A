@@ -2,29 +2,30 @@
 #include <string>
 #include <stdio.h>
 
-//#include <opencv2/opencv.hpp>
-//#include <opencv2/core/cuda.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/cuda.hpp>
 
 
-#include <opencv/cv.h> //Minha versão é outra.
-#include <opencv/ml.h>
-#include <opencv/cxcore.h>
-#include <opencv/highgui.h>
+// #include <opencv/cv.h> //Minha versão é outra.
+// #include <opencv/ml.h>
+// #include <opencv/cxcore.h>
+// #include <opencv/highgui.h>
 
 
 //#include <sys/time.h> //Não existe no Windows.
 
 
-//#include <cuda.h> //Original
+#include <cuda.h> //Original
 
-#include <CUDA/cuda.h>
+//#include <CUDA/cuda.h>
 #include <CUDA/cuda_runtime.h>
 #include <CUDA/device_launch_parameters.h>
 
 __global__ void smoothGray (unsigned char *imagem, unsigned char *saida, unsigned int cols, unsigned int linhas)
 {
 	unsigned int indice = (blockIdx.y * blockDim.x * 65536) + (blockIdx.x * 1024) + threadIdx.x; // calcula o indice do vetor com base nas dimensões de bloco e indice da thread
-	
+	if(indice >= cols*linhas)
+		return;
 	//indices para o campo da imagem que participará do smooth 
 	int i_begin = (indice/(int)cols) - 2, i_end = (indice/(int)cols)+2;
 	int j_begin = (indice%(int)cols) - 2, j_end = (indice%(int)cols)+2;
@@ -67,7 +68,7 @@ void cudaCinza(char *nome_imagem, char *nome_saida)
 	
 	/* Inicio do processo paralelo */
 	
-	cuInit(0); 
+//	cuInit(0); 
 	dim3 Bloco_dim(1024); //define bloco de 1 linha tamanho 1024
 	unsigned int num_Blocos = (unsigned int)ceil(((double)(imagem.rows*imagem.cols))/1024); //verifica quantos blocos serão necessário para a imagem
 	smoothGray <<< num_Blocos, Bloco_dim >>> (imagem_entrada, imagem_saida, imagem.cols, imagem.rows);
@@ -102,7 +103,8 @@ void cudaCinza(char *nome_imagem, char *nome_saida)
 __global__ void smoothColor (unsigned char *imagem, unsigned char *saida, unsigned int cols, unsigned int linhas)
 {
 	unsigned int indice = (blockIdx.y * blockDim.x * 65536) + (blockIdx.x * 1024) + threadIdx.x; // calcula o indice do vetor com base nas dimensões de bloco e indice da thread
-
+	if(indice >= cols*linhas)
+		return;
 	//indices para o campo da imagem que participará do smooth 
 	int i_begin = (indice/(int)cols)-2, i_end = (indice/(int)cols)+2;
 	int j_begin = (indice%(int)cols)-2, j_end = (indice%(int)cols)+2;
@@ -148,7 +150,7 @@ void cudaColorido(char *nome_imagem, char *nome_saida)
 	
 	/* Inicio do processo paralelo */
 	
-	cuInit(0); 
+	//cuInit(0); 
 	dim3 Bloco_dim(1024); //define bloco de 1 linha tamanho 1024
 
 	unsigned int num_Blocos = (unsigned int)ceil(((double)(imagem.rows*imagem.cols)) / 1024); //verifica quantos blocos serão necessário para a imagem
