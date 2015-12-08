@@ -29,7 +29,7 @@ void calculaRGB(cv::Mat img, cv::Mat img_saida, int i, int j, int top, int botto
     img_saida.at<cv::Vec3b>(i, j)[2] = (unsigned char)(media[2]/qtd);
 }
 
-void sequencialColorido(std::string nome_imagem, std::string imagem_saida){//char *nome_imagem, char *imagem_saida){
+void sequencialColorido(char *nome_imagem, char *imagem_saida){//char *nome_imagem, char *imagem_saida){
     //cout << "nome da imagem: " << nome_imagem << "\n";
     cv::Mat img = cv::imread(nome_imagem);
     cv::Mat img_saida(img.rows, img.cols, CV_8UC3);
@@ -83,9 +83,10 @@ void sequencialColorido(std::string nome_imagem, std::string imagem_saida){//cha
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
 
     char nome[100];
-    sprintf(nome, "%s.out", imagem_saida.c_str());
+    sprintf(nome, "%s.out", imagem_saida);
     FILE *fp = NULL;
-    fp = fopen(nome, "w");
+    if((fp = fopen(nome, "a")) == NULL)
+		fp = fopen(nome,"w");
    
     fprintf(fp, "%lf", tempo);
     //apresentar os resultado
@@ -109,7 +110,7 @@ void calculaCinza(cv::Mat img, cv::Mat img_saida, int i, int j, int top, int bot
     img_saida.at<uchar>(i, j) = (unsigned char)(media/qtd);
 }
 
-void sequencialCinza(std::string nome_imagem, std::string imagem_saida){
+void sequencialCinza(char *nome_imagem, char* imagem_saida){
     //cout << "nome da imagem: " << nome_imagem << "\n";
     cv::Mat img = cv::imread(nome_imagem);
     cv::Mat img_saida(img.rows, img.cols, CV_8UC1);
@@ -164,9 +165,13 @@ void sequencialCinza(std::string nome_imagem, std::string imagem_saida){
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
 
     char nome[100];
-    sprintf(nome, "%s.out", imagem_saida.c_str());
-    FILE *fp = fopen(nome, "w");
+    sprintf(nome, "%s.out", imagem_saida);
+    FILE *fp = NULL;
+    if((fp = fopen(nome, "a")) == NULL)
+		fp = fopen(nome,"w");
+   
     fprintf(fp, "%lf", tempo);
+    //apresentar os resultado
     fclose(fp);
     //apresentar os resultado
 
@@ -188,7 +193,7 @@ void calculaConCinza(unsigned char *img, unsigned char *img_saida, int i, int j,
     img_saida[(i*width)+j] = (unsigned char)(media/qtd);
 }
 
-void concorrenteCinza(std::string nome_imagem, std::string imagem_saida){//char *nome_imagem, int n_threads){
+void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem, int n_threads){
     int node;
     int num_slaves;
 
@@ -314,11 +319,14 @@ void concorrenteCinza(std::string nome_imagem, std::string imagem_saida){//char 
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
 
     char nome[100];
-    sprintf(nome, "%s.out", imagem_saida.c_str());
-    FILE *fp = fopen(nome, "w");
+    sprintf(nome, "%s.out", imagem_saida);
+    FILE *fp = NULL;
+    if((fp = fopen(nome, "a")) == NULL)
+		fp = fopen(nome,"w");
+   
     fprintf(fp, "%lf", tempo);
+    //apresentar os resultado
     fclose(fp);
-    
 
 }
 
@@ -340,7 +348,7 @@ void calculaConRGB(unsigned char *img, unsigned char *img_saida, int i, int j, i
     img_saida[(i*width)+j+2] = (unsigned char)(media[2]/qtd);
 }
 
-void concorrenteColorido(std::string nome_imagem, std::string imagem_saida){
+void concorrenteColorido(char *nome_imagem, char *imagem_saida){
     int node;
     int num_slaves;
 
@@ -472,8 +480,12 @@ void concorrenteColorido(std::string nome_imagem, std::string imagem_saida){
                                 - (start.tv_sec * 1000000 + start.tv_usec))))/1000000);
 
     char nome[100];
-    sprintf(nome, "%s.out", imagem_saida.c_str());
-    FILE *fp = fopen(nome, "w");
+    sprintf(nome, "%s.out", imagem_saida);
+    FILE *fp = NULL;
+    if((fp = fopen(nome, "a")) == NULL)
+		fp = fopen(nome,"w");
+   
     fprintf(fp, "%lf", tempo);
+    //apresentar os resultado
     fclose(fp);
 }

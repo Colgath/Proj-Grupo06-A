@@ -42,10 +42,11 @@ int main(int argc, char **argv)
 			{
 				nome_saida[j] = nome_imagem[indice+j];
 			}
-			sprintf (nome_saida, "saida/%s", nome_saida);
+			
 			
 			switch (opcao){
 			case 0:
+				sprintf (nome_saida, "saida/sequencial/%s", nome_saida);
 			   if(opcao_cor == 1){
 					sequencialColorido(nome_imagem, nome_saida);
 				}else{
@@ -53,6 +54,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 1:
+				sprintf (nome_saida, "saida/concorrente/%s", nome_saida);
 				if(opcao_cor == 1){
 					concorrenteColorido(nome_imagem, nome_saida);
 				}else{
