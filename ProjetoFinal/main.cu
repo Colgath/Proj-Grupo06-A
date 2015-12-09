@@ -210,11 +210,11 @@ int main()
 				if(nome_imagem[i] == '/' ) indice = i+1;
 			}
 			
-				int j = 0;
-				for(; j <= i-indice; ++j)
-				{
-					buffer_saida[j] = nome_imagem[indice+j];
-				}
+			int j = 0;
+			for(; j <= i-indice; ++j)
+			{
+				buffer_saida[j] = nome_imagem[indice+j];
+			}
 			
 			sprintf (nome_saida, "saida/%s", buffer_saida);
 			if(opcao_cor == 1){

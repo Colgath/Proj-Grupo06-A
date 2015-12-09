@@ -88,7 +88,7 @@ void sequencialColorido(char *nome_imagem, char *imagem_saida){//char *nome_imag
     if((fp = fopen(nome, "a")) == NULL)
 		fp = fopen(nome,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
     cv::imwrite(imagem_saida, img_saida);
@@ -170,7 +170,7 @@ void sequencialCinza(char *nome_imagem, char* imagem_saida){
     if((fp = fopen(nome, "a")) == NULL)
 		fp = fopen(nome,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
     //apresentar os resultado
@@ -194,14 +194,14 @@ void calculaConCinza(unsigned char *img, unsigned char *img_saida, int i, int j,
 }
 
 void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem, int n_threads){
-    int node;
+    std::cout << "Rodando para "<<nome_imagem<<" com saida em "<<imagem_saida<<std::endl;
+	int node;
     int num_slaves;
 
     /*comeco de calcular tempo*/
     struct timeval start,end;
     double tempo=0.0;
     gettimeofday(&start,NULL);
-
 
     MPI_Init(NULL, NULL); 
     MPI_Comm_rank(MPI_COMM_WORLD, &node); 
@@ -217,7 +217,7 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
         int limite_superior = rows_to_slave + 4;
 		int num_linhas = 0;
 		int i;
-        for (i = 1; i<num_slaves-1 ; ++i)
+        for (i = 1; i<num_slaves ; ++i)
         {
             num_linhas = limite_superior - limite_inferior;
 
@@ -228,13 +228,17 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
 
             limite_inferior += rows_to_slave;
             limite_superior += rows_to_slave;
+			if(i==num_slaves-1)
+			{
+				limite_superior = img.rows;
+				num_linhas = limite_superior - limite_inferior;
+				MPI_Send(&num_linhas, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
+				MPI_Send(&img.cols, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 1, MPI_COMM_WORLD);
+				MPI_Send(&(img.data[limite_inferior * img.cols]), num_linhas * img.cols, MPI_UNSIGNED_CHAR, i, MASTER_TO_SLAVE_TAG + 2, MPI_COMM_WORLD);
+				MPI_Send(&limite_inferior, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 3, MPI_COMM_WORLD);
+			}
         }
-        limite_superior = img.rows;
-        num_linhas = limite_superior - limite_inferior;
-        MPI_Send(&num_linhas, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
-        MPI_Send(&img.cols, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 1, MPI_COMM_WORLD);
-        MPI_Send(&(img.data[limite_inferior * img.cols]), num_linhas * img.cols, MPI_UNSIGNED_CHAR, i, MASTER_TO_SLAVE_TAG + 2, MPI_COMM_WORLD);
-        MPI_Send(&limite_inferior, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 3, MPI_COMM_WORLD);
+        
 
         //canto superior esquerdo
         calculaCinza(img, img_smooth, 0, 0, 0, 3, 0, 3);
@@ -264,8 +268,7 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
             calculaCinza(img, img_smooth, img.rows-2, j, img.rows-4, img.rows, j-2, j+2);//penultima linha
             calculaCinza(img, img_smooth, img.rows-1, j, img.rows-3, img.rows, j-2, j+2);//ultima linha
         }
-
-        for (i = 1; i < num_slaves; i++)
+		for (i = 1; i < num_slaves; i++)
         {
             int posicao;
             int linhas;
@@ -275,6 +278,7 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
             MPI_Recv(&(img_smooth.data[posicao * img_smooth.cols]), linhas * img_smooth.cols, MPI_UNSIGNED_CHAR, i, SLAVE_TO_MASTER_TAG + 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
         cv::imwrite(imagem_saida, img_smooth);
+ 
     }else
     {
         unsigned char *img_entrada;
@@ -311,7 +315,7 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
         delete img_entrada;
         delete img_saida;
     }
-
+	
     MPI_Finalize();
 
     gettimeofday(&end,NULL);
@@ -324,7 +328,7 @@ void concorrenteCinza(char *nome_imagem, char *imagem_saida){//char *nome_imagem
     if((fp = fopen(nome, "a")) == NULL)
 		fp = fopen(nome,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
 
@@ -349,7 +353,8 @@ void calculaConRGB(unsigned char *img, unsigned char *img_saida, int i, int j, i
 }
 
 void concorrenteColorido(char *nome_imagem, char *imagem_saida){
-    int node;
+    std::cout << "Rodando para "<<nome_imagem<<" com saida em "<<imagem_saida<<std::endl;
+	int node;
     int num_slaves;
 
     /*comeco de calcular tempo*/
@@ -363,8 +368,6 @@ void concorrenteColorido(char *nome_imagem, char *imagem_saida){
     
     if (node == PAI)
     {
-		printf("node: %d\n", node);
-		printf("node: %d\n", num_slaves);
         cv::Mat img = cv::imread(nome_imagem);
         cv::Mat img_smooth(img.rows, img.cols, CV_8UC3);
 
@@ -373,28 +376,27 @@ void concorrenteColorido(char *nome_imagem, char *imagem_saida){
         int limite_superior = rows_to_slave + 4;
 		int num_linhas;
 		int i;
-		printf("Foi ate aqui 1\n");
-        for (i = 1; i<num_slaves-1 ; ++i)
+        for (i = 1; i<num_slaves ; ++i)
         {
             num_linhas = limite_superior - limite_inferior;
 
             MPI_Send(&num_linhas, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
-			printf("Foi ate aqui 2.%d\n", i);
             MPI_Send(&img.cols, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 1, MPI_COMM_WORLD);
-			printf("Foi ate aqui 3.%d\n", i);
             MPI_Send(&(img.data[limite_inferior * img.cols * 3]), num_linhas * img.cols * 3, MPI_UNSIGNED_CHAR, i, MASTER_TO_SLAVE_TAG + 2, MPI_COMM_WORLD);
-			printf("Foi ate aqui 4.%d\n", i);
             MPI_Send(&limite_inferior, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 3, MPI_COMM_WORLD);
-			printf("Foi ate aqui 5.%d\n", i);
             limite_inferior += rows_to_slave;
             limite_superior += rows_to_slave;
+			if(i==num_slaves-1)
+			{
+				 limite_superior = img.rows;
+				num_linhas = limite_superior - limite_inferior;
+				MPI_Send(&num_linhas, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
+				MPI_Send(&img.cols, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 1, MPI_COMM_WORLD);
+				MPI_Send(&(img.data[limite_inferior * img.cols]), num_linhas * img.cols, MPI_UNSIGNED_CHAR, i, MASTER_TO_SLAVE_TAG + 2, MPI_COMM_WORLD);
+				MPI_Send(&limite_inferior, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 3, MPI_COMM_WORLD);
+			}
         }
-        limite_superior = img.rows;
-        num_linhas = limite_superior - limite_inferior;
-        MPI_Send(&num_linhas, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG, MPI_COMM_WORLD);
-        MPI_Send(&img.cols, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 1, MPI_COMM_WORLD);
-        MPI_Send(&(img.data[limite_inferior * img.cols]), num_linhas * img.cols, MPI_UNSIGNED_CHAR, i, MASTER_TO_SLAVE_TAG + 2, MPI_COMM_WORLD);
-        MPI_Send(&limite_inferior, 1, MPI_INT, i, MASTER_TO_SLAVE_TAG + 3, MPI_COMM_WORLD);
+       
 
         //canto superior esquerdo
         calculaRGB(img, img_smooth, 0, 0, 0, 3, 0, 3);
@@ -485,7 +487,7 @@ void concorrenteColorido(char *nome_imagem, char *imagem_saida){
     if((fp = fopen(nome, "a")) == NULL)
 		fp = fopen(nome,"w");
    
-    fprintf(fp, "%lf", tempo);
+    fprintf(fp, "%lf\n", tempo);
     //apresentar os resultado
     fclose(fp);
 }
